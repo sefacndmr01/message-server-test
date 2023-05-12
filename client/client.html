@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+	<meta charset="UTF-8">
+	<meta http-equiv="X-UA-Compatible" content="IE=edge">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<title>Message</title>
+	<link rel="stylesheet" href="client.css">
+</head>
+
+<body>
+	<section class="message-wrapper">
+		<header>
+			<h1>Messages</h1>
+		</header>
+		<main>
+			<div id="messages">
+
+			</div>
+			<form class="form" id="form">
+				<input id="messageText" placeholder="Type your message."></input>
+				<button id="send" type="submit">Send</button>
+			</form>
+		</main>
+	</section>
+</body>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.6.1/socket.io.js"></script>
+<script>
+	const users = ['Sefa', 'Ceren', 'Bilge Kaan'];
+	const rnd = Math.floor(Math.random() * 2);
+	
+	const socket = io('localhost:3000', {
+		query:{
+			user:users[rnd]
+		},
+		transports: ['websocket']
+	});
+
+	const messages = document.getElementById('messages');
+
+	socket.on('connect', (data) => {
+		socket.on('message_receive', data => {
+			let mainWrapper = document.createElement('div');
+			let wrapper = document.createElement('div');
+			let username = document.createElement('p');
+			let msg = document.createElement('p');
+
+			username.innerText = data.user;
+			msg.innerText = data.message;
+
+			wrapper.appendChild(username);
+			wrapper.appendChild(msg);
+			mainWrapper.appendChild(wrapper);
+
+			if(data.user == users[rnd]) mainWrapper.classList.add('own')
+
+			messages.appendChild(mainWrapper);
+		});
+	})
+
+	document.getElementById('form').addEventListener('submit', e => {
+		e.preventDefault();
+		let textArea = document.getElementById('messageText');
+		socket.emit('send', textArea.value);
+		textArea.value = '';
+	});
+</script>
+
+</html>
